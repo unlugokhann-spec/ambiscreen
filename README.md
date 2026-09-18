@@ -50,7 +50,8 @@ açık olduğundan emin olun (varsayılan olarak açıktır).
 Uygulama içinde ayarlanabilenler:
 
 - **WLED IP adresi / portu** — WLED cihazının yerel ağdaki IP'si (WLED
-  arayüzünün ana sayfasında görünür), varsayılan port 4048.
+  arayüzünün ana sayfasında görünür), varsayılan port 4048. "Ağda WLED cihazı
+  ara" butonuyla mDNS üzerinden otomatik de bulunabilir.
 - **LED sayısı** — Şeritteki toplam LED adedi, perimetre etrafına orantılı
   dağıtılır.
 - **Kenar örnekleme payı (%)** — Renk ortalaması alınırken ekranın kenarından
@@ -74,11 +75,13 @@ Uygulama içinde ayarlanabilenler:
 
 ## Bilinen sınırlamalar / yol haritası
 
+- [x] Sinemaskop/letterbox içerikte üst-alt (veya pillarbox'ta yan) siyah
+      şeritlerin tespit edilip örneklemeden hariç tutulması (`ColorExtractor.detectContentRect`).
+- [x] Uygulama içi WLED cihaz keşfi (mDNS, `_http._tcp` üzerinden "WLED-XXXXXX"
+      adlı cihazları bulur) — IP'yi elle girmeye gerek kalmadan listeden seçilebilir.
+- [x] Uygulama ikonu (adaptive icon).
 - [ ] Çoklu LED düzeni desteği (yalnızca tek perimetre şeridi; L-şekilli veya
       matris düzenler için `ColorExtractor` genişletilmeli).
 - [ ] Netflix gibi DRM korumalı akışlarda ekran yakalama engellenebilir —
       bu durumda alternatif olarak harici bir HDMI capture + PC/Raspberry Pi
       tabanlı Hyperion.NG çözümü değerlendirilebilir.
-- [ ] Kararan sahnelerde siyah bar (letterbox) tespiti ekleyerek gereksiz siyah
-      kenar örneklemesinin önüne geçmek.
-- [ ] Uygulama içi WLED cihaz keşfi (mDNS/UDP broadcast) — şu an IP manuel giriliyor.

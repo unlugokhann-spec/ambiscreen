@@ -159,9 +159,9 @@ class ScreenCaptureService : Service() {
         )
         bitmap.copyPixelsFromBuffer(buffer)
 
+        val contentRect = ColorExtractor.detectContentRect(bitmap)
         val zones = ColorExtractor.buildPerimeterZones(
-            width = image.width,
-            height = image.height,
+            contentRect = contentRect,
             ledCount = settings.ledCount,
             marginPercent = settings.marginPercent,
         )
