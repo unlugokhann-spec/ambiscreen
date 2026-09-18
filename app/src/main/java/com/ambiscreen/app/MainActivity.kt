@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.ambiscreen.app.audio.AudioReactiveService
 import com.ambiscreen.app.capture.Edge
 import com.ambiscreen.app.capture.LedLayoutConfig
 import com.ambiscreen.app.capture.ScreenCaptureService
@@ -48,27 +49,46 @@ import com.ambiscreen.app.discovery.WledDiscovery
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+enum class CaptureMode { SCREEN, AUDIO }
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var settingsRepository: SettingsRepository
+    private var pendingMode: CaptureMode = CaptureMode.SCREEN
 
-    private val screenCaptureLauncher = registerForActivityResult(
+    private val captureConsentLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         val data = result.data
-        if (result.resultCode == RESULT_OK && data != null) {
-            val intent = Intent(this, ScreenCaptureService::class.java).apply {
+        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
+
+        val intent = when (pendingMode) {
+            CaptureMode.SCREEN -> Intent(this, ScreenCaptureService::class.java).apply {
                 action = ScreenCaptureService.ACTION_START
                 putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, result.resultCode)
                 putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, data)
             }
-            ContextCompat.startForegroundService(this, intent)
+            CaptureMode.AUDIO -> Intent(this, AudioReactiveService::class.java).apply {
+                action = AudioReactiveService.ACTION_START
+                putExtra(AudioReactiveService.EXTRA_RESULT_CODE, result.resultCode)
+                putExtra(AudioReactiveService.EXTRA_RESULT_DATA, data)
+            }
         }
+        ContextCompat.startForegroundService(this, intent)
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { /* sonuçtan bağımsız devam edilir; reddedilirse yalnızca bildirim görünmez */ }
+
+    private val recordAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            pendingMode = CaptureMode.AUDIO
+            launchCaptureConsent()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,35 +107,64 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun requestCaptureAndStart() {
+    private fun requestCaptureAndStart(mode: CaptureMode) {
+        ensureNotificationPermission()
+        when (mode) {
+            CaptureMode.SCREEN -> {
+                pendingMode = CaptureMode.SCREEN
+                launchCaptureConsent()
+            }
+            CaptureMode.AUDIO -> {
+                if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    recordAudioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                } else {
+                    pendingMode = CaptureMode.AUDIO
+                    launchCaptureConsent()
+                }
+            }
+        }
+    }
+
+    private fun ensureNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
-        val projectionManager =
-            getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        screenCaptureLauncher.launch(projectionManager.createScreenCaptureIntent())
     }
 
-    private fun stopCapture() {
-        val intent = Intent(this, ScreenCaptureService::class.java).apply {
-            action = ScreenCaptureService.ACTION_STOP
+    private fun launchCaptureConsent() {
+        val projectionManager =
+            getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        captureConsentLauncher.launch(projectionManager.createScreenCaptureIntent())
+    }
+
+    private fun stopCapture(mode: CaptureMode) {
+        val serviceClass = when (mode) {
+            CaptureMode.SCREEN -> ScreenCaptureService::class.java
+            CaptureMode.AUDIO -> AudioReactiveService::class.java
         }
-        startService(intent)
+        val action = when (mode) {
+            CaptureMode.SCREEN -> ScreenCaptureService.ACTION_STOP
+            CaptureMode.AUDIO -> AudioReactiveService.ACTION_STOP
+        }
+        startService(Intent(this, serviceClass).apply { this.action = action })
     }
 }
 
 @Composable
 fun AmbiScreenApp(
     settingsRepository: SettingsRepository,
-    onStart: () -> Unit,
-    onStop: () -> Unit,
+    onStart: (CaptureMode) -> Unit,
+    onStop: (CaptureMode) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val settings by settingsRepository.settingsFlow.collectAsState(initial = AmbiSettings())
-    var isRunning by remember { mutableStateOf(false) }
+    var runningMode by remember { mutableStateOf<CaptureMode?>(null) }
+    val audioModeAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     val discovery = remember { WledDiscovery(context) }
     val discoveredDevices = remember { mutableStateListOf<DiscoveredWled>() }
@@ -238,6 +287,15 @@ fun AmbiScreenApp(
         )
 
         LabeledSlider(
+            label = "Ses hassasiyeti (yalnızca ses-tepkili modda): %${settings.audioSensitivityPercent}",
+            value = settings.audioSensitivityPercent.toFloat(),
+            range = 10f..200f,
+            onValueChange = { v ->
+                scope.launch { settingsRepository.update(settings.copy(audioSensitivityPercent = v.toInt())) }
+            },
+        )
+
+        LabeledSlider(
             label = "Güncelleme aralığı: ${settings.intervalMs} ms",
             value = settings.intervalMs.toFloat(),
             range = 40f..500f,
@@ -256,18 +314,57 @@ fun AmbiScreenApp(
             )
         }
 
-        Button(
-            onClick = {
-                if (isRunning) {
-                    onStop()
-                } else {
-                    onStart()
+        if (runningMode != null) {
+            Button(
+                onClick = {
+                    onStop(runningMode!!)
+                    runningMode = null
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    if (runningMode == CaptureMode.AUDIO) {
+                        "Durdur (ses-tepkili mod)"
+                    } else {
+                        "Durdur (ekran modu)"
+                    },
+                )
+            }
+        } else {
+            Button(
+                onClick = {
+                    onStart(CaptureMode.SCREEN)
+                    runningMode = CaptureMode.SCREEN
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Ekran senkronizasyonunu başlat")
+            }
+
+            Column {
+                Button(
+                    onClick = {
+                        onStart(CaptureMode.AUDIO)
+                        runningMode = CaptureMode.AUDIO
+                    },
+                    enabled = audioModeAvailable,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Ses-tepkili modu başlat (Netflix gibi DRM'li akışlar için)")
                 }
-                isRunning = !isRunning
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(if (isRunning) "Durdur" else "Ekran senkronizasyonunu başlat")
+                if (!audioModeAvailable) {
+                    Text(
+                        "Bu mod Android 10 ve üzeri gerektirir.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    Text(
+                        "Ekranı okumaz; çalan sesin bas/tiz enerjisine göre renk üretir. " +
+                            "Kaynak uygulama sesi de yakalamaya kapatmışsa bu mod da tepki vermez.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
         }
     }
 }

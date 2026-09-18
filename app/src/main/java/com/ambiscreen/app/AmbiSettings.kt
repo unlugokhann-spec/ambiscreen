@@ -27,6 +27,7 @@ data class AmbiSettings(
     val reverseDirection: Boolean = false,
     val brightnessPercent: Int = 100,
     val smoothingPercent: Int = 35,
+    val audioSensitivityPercent: Int = 60,
 ) {
     val ledLayout: LedLayoutConfig get() = LedLayoutConfig.deserialize(ledLayoutRaw)
 }
@@ -40,6 +41,7 @@ object SettingsKeys {
     val REVERSE_DIRECTION = booleanPreferencesKey("reverse_direction")
     val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
     val SMOOTHING_PERCENT = intPreferencesKey("smoothing_percent")
+    val AUDIO_SENSITIVITY_PERCENT = intPreferencesKey("audio_sensitivity_percent")
 }
 
 class SettingsRepository(private val context: Context) {
@@ -55,6 +57,8 @@ class SettingsRepository(private val context: Context) {
             reverseDirection = prefs[SettingsKeys.REVERSE_DIRECTION] ?: defaults.reverseDirection,
             brightnessPercent = prefs[SettingsKeys.BRIGHTNESS_PERCENT] ?: defaults.brightnessPercent,
             smoothingPercent = prefs[SettingsKeys.SMOOTHING_PERCENT] ?: defaults.smoothingPercent,
+            audioSensitivityPercent = prefs[SettingsKeys.AUDIO_SENSITIVITY_PERCENT]
+                ?: defaults.audioSensitivityPercent,
         )
     }
 
@@ -68,6 +72,7 @@ class SettingsRepository(private val context: Context) {
             prefs[SettingsKeys.REVERSE_DIRECTION] = settings.reverseDirection
             prefs[SettingsKeys.BRIGHTNESS_PERCENT] = settings.brightnessPercent
             prefs[SettingsKeys.SMOOTHING_PERCENT] = settings.smoothingPercent
+            prefs[SettingsKeys.AUDIO_SENSITIVITY_PERCENT] = settings.audioSensitivityPercent
         }
     }
 }

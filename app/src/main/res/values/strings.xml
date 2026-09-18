@@ -3,4 +3,6 @@
     <string name="notification_channel_name">Ekran senkronizasyonu</string>
     <string name="notification_title">AmbiScreen çalışıyor</string>
     <string name="notification_text">Ekran renkleri WLED cihazına gönderiliyor</string>
+    <string name="audio_notification_title">AmbiScreen (ses-tepkili mod) çalışıyor</string>
+    <string name="audio_notification_text">Ses analizine göre WLED cihazına renk gönderiliyor</string>
 </resources>

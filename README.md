@@ -66,6 +66,8 @@ Uygulama içinde ayarlanabilenler:
   arasındaki dengeyi ayarlar.
 - **Yön ters çevirme** — Kablolama sırası, hesaplanan sıranın (başlangıç
   kenarından saat yönünde) tam tersiyse açılır.
+- **Ses hassasiyeti** — Yalnızca ses-tepkili modda kullanılır; sesin
+  parlaklığa dönüşüm kazancını ayarlar.
 
 ## Projeyi açma
 
@@ -79,15 +81,31 @@ Uygulama içinde ayarlanabilenler:
 4. Uygulamayı projeksiyon cihazına yükleyip çalıştırın, WLED IP'sini girin,
    "Ekran senkronizasyonunu başlat" ile ekran paylaşım iznini onaylayın.
 
-## DRM korumalı içerik (Netflix vb.) için alternatif: HDMI capture modu
+## DRM korumalı içerik (Netflix vb.) için alternatifler
 
 Widevine L1 DRM, oynatma sırasında Android'e "güvenli yüzey" bayrağı koyar ve
 bu açıkken `MediaProjection` sadece siyah kare döner — bu, işletim sisteminin
-donanım seviyesinde uyguladığı bir kısıtlamadır ve uygulama içinden yazılımla
-aşılamaz. Bunun yerine `hdmi-capture/` klasöründeki Python betiği, projektörün
-HDMI çıkışına takılan ayrı bir capture cihazından görüntüyü okuyup aynı
-algoritmayı (letterbox tespiti + kenar örnekleme) ve aynı DDP protokolünü
-kullanarak WLED'e gönderir. Kurulum adımları ve donanım listesi için
+donanım seviyesinde uyguladığı bir kısıtlamadır ve uygulama içinden hiçbir
+yazılımla aşılamaz (Widevine L1 sertifikalı, Netflix'i resmi olarak HD/4K
+oynatan projektörlerde bu blok her zaman gerçektir). İki alternatif var:
+
+### 1. Uygulama içi ses-tepkili mod (ekstra donanım gerektirmez)
+
+Ekranı okumak yerine cihazın çaldığı SESİ okur (`AudioPlaybackCaptureConfiguration`,
+Android 10+) ve bas/tiz enerjisine göre tüm LED'lere aynı renk/parlaklığı
+gönderir (`AudioReactiveService.kt`). Aynı ekran paylaşım izin ekranını
+kullanır, hiçbir ek parça gerekmez. Ana ekrandaki "Ses-tepkili modu başlat"
+butonuyla açılır. Gerçek ekran rengini yansıtmaz, müziğe/sese tepki veren bir
+ambiyans sağlar; kaynak uygulama sesi de yakalamaya kapatmışsa (nadir ama
+mümkün) bu mod da tepki vermez.
+
+### 2. HDMI capture modu (ekstra bir Raspberry Pi/PC gerektirir)
+
+`hdmi-capture/` klasöründeki Python betiği, projektörün HDMI çıkışına takılan
+ayrı bir capture cihazından görüntüyü okuyup aynı algoritmayı (letterbox
+tespiti + kenar örnekleme) ve aynı DDP protokolünü kullanarak WLED'e gönderir
+— gerçek ekran rengini birebir yansıtır ama ekstra donanım (HDMI splitter +
+capture kartı + Raspberry Pi) ister. Kurulum adımları için
 [`hdmi-capture/README.md`](hdmi-capture/README.md) dosyasına bakın.
 
 ## Bilinen sınırlamalar / yol haritası
@@ -101,7 +119,8 @@ kullanarak WLED'e gönderir. Kurulum adımları ve donanım listesi için
       ve başlangıç kenarı seçilebiliyor (tam perimetre, yalnızca üst-alt,
       L-şekilli vb. desteklenir). Gerçek 2D matris (ekran arkasında satır
       satır ızgara) düzeni hâlâ kapsam dışı.
-- [x] Netflix gibi DRM korumalı akışlar için alternatif çözüm: `hdmi-capture/`
-      altında, projektörün HDMI çıkışını okuyup aynı algoritma ve DDP
-      protokolüyle WLED'e gönderen bağımsız bir Python betiği (Raspberry Pi
-      üzerinde 7/24 çalışacak şekilde, systemd servis dosyasıyla).
+- [x] Netflix gibi DRM korumalı akışlar için iki alternatif: (a) ekstra
+      donanım gerektirmeyen uygulama içi ses-tepkili mod
+      (`AudioReactiveService.kt`, Android 10+), (b) gerçek ekran rengini
+      birebir yansıtan ama ekstra bir Raspberry Pi/HDMI capture gerektiren
+      `hdmi-capture/` betiği.
