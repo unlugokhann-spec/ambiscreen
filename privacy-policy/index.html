@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AmbiScreen — Gizlilik Politikası</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0F1923;
+      color: #E2E8F0;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      line-height: 1.7;
+    }
+    h1 { color: #2DD4BF; font-size: 24px; margin-bottom: 6px; }
+    .meta { color: #64748B; font-size: 13px; margin-bottom: 36px; }
+    h2 { color: #E2E8F0; font-size: 16px; font-weight: 600; margin-top: 32px; margin-bottom: 10px; }
+    p, li { color: #94A3B8; font-size: 14px; }
+    ul { padding-left: 20px; margin-top: 6px; }
+    li { margin-bottom: 6px; }
+    footer { margin-top: 48px; text-align: center; color: #64748B; font-size: 12px; }
+    a { color: #2DD4BF; }
+  </style>
+</head>
+<body>
+  <h1>AmbiScreen — Gizlilik Politikası</h1>
+  <p class="meta">Son güncelleme: Eylül 2026</p>
+
+  <h2>1. Genel Bakış</h2>
+  <p>AmbiScreen, ekran görüntüsünü veya cihaz sesini analiz ederek yerel ağınızdaki bir WLED
+  LED denetleyicisine renk komutları gönderen bir ambiyans aydınlatma uygulamasıdır. Uygulama
+  hesap oluşturma, giriş yapma veya bulut senkronizasyonu gerektirmez; hiçbir sunucumuz yoktur
+  ve toplanan hiçbir veri Anthropic, geliştirici veya üçüncü taraflarla paylaşılmaz.</p>
+
+  <h2>2. Ekran Yakalama (Ekran Modu)</h2>
+  <p>"Ekran senkronizasyonunu başlat" ile açık rızanızla Android'in ekran paylaşım iznini
+  verirsiniz. Yakalanan kareler yalnızca cihaz üzerinde, anlık olarak ortalama renklere
+  dönüştürülür; hiçbir görüntü karesi kaydedilmez, saklanmaz veya cihaz dışına gönderilmez.
+  Cihaz dışına giden tek veri, hesaplanan renk değerleridir ve bunlar yalnızca sizin
+  belirttiğiniz, aynı yerel ağdaki WLED cihazının IP adresine UDP ile gönderilir.</p>
+
+  <h2>3. Ses Yakalama (Ses-Tepkili Mod)</h2>
+  <p>DRM korumalı içerikte ekran yakalama işletim sistemi tarafından engellendiğinde kullanılan
+  yedek moddur. Android'in ses paylaşım izniyle (aynı ekran paylaşım izin ekranı) cihazın
+  çaldığı sesin ham dalga formu yalnızca cihaz üzerinde, anlık olarak bas/tiz enerjisine
+  dönüştürülür. Ses verisi hiçbir zaman kaydedilmez, dosyaya yazılmaz veya cihaz dışına
+  gönderilmez; yalnızca hesaplanan renk/parlaklık değeri yerel ağdaki WLED cihazına gönderilir.</p>
+
+  <h2>4. Ağ Erişimi</h2>
+  <p>Uygulama yalnızca yerel Wi-Fi ağınız içinde çalışır: WLED cihazlarını bulmak için mDNS
+  taraması yapar ve renk komutlarını UDP ile gönderir. İnternet üzerinden herhangi bir sunucuya
+  bağlanmaz, veri yüklemez.</p>
+
+  <h2>5. Yerel Depolama</h2>
+  <p>WLED IP adresi, LED yerleşimi, parlaklık gibi ayarlarınız yalnızca cihazınızın yerel
+  depolama alanında (Android DataStore) saklanır. Bu veriler cihazdan hiçbir zaman dışarı
+  gönderilmez. Uygulamayı cihazınızdan kaldırdığınızda bu veriler de silinir.</p>
+
+  <h2>6. İzinler</h2>
+  <ul>
+    <li><strong>Ekran kaydı / medya projeksiyonu</strong> — ekran renklerini okumak için (Ekran modu).</li>
+    <li><strong>Mikrofon/ses kaydı</strong> — cihazın çaldığı sesi analiz etmek için (Ses-tepkili mod); harici mikrofon kullanılmaz.</li>
+    <li><strong>Ağ erişimi</strong> — WLED cihazını bulmak ve ona renk göndermek için.</li>
+    <li><strong>Bildirim</strong> — arka planda çalışırken durum bildirimi göstermek için.</li>
+  </ul>
+
+  <h2>7. Reklam, Analitik ve Üçüncü Taraflar</h2>
+  <p>Uygulamada reklam, kullanım analitiği veya izleme SDK'sı bulunmaz. Hiçbir üçüncü taraf
+  hizmetiyle veri paylaşılmaz.</p>
+
+  <h2>8. Veri Silme</h2>
+  <p>Tüm veriler yalnızca cihazınızda tutulduğu için, uygulamayı kaldırmanız tüm ayarları
+  kalıcı olarak siler. Ayrıca sunucu tarafında saklanan bir veri olmadığı için ayrı bir silme
+  talebine gerek yoktur.</p>
+
+  <h2>9. İletişim</h2>
+  <p>Gizlilik ile ilgili sorularınız için: <a href="mailto:destek@ambiscreen.app">destek@ambiscreen.app</a></p>
+
+  <footer>AmbiScreen &nbsp;•&nbsp; github.com/unlugokhann-spec/ambiscreen</footer>
+</body>
+</html>

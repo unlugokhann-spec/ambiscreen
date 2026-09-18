@@ -81,6 +81,16 @@ Uygulama içinde ayarlanabilenler:
 4. Uygulamayı projeksiyon cihazına yükleyip çalıştırın, WLED IP'sini girin,
    "Ekran senkronizasyonunu başlat" ile ekran paylaşım iznini onaylayın.
 
+## Play Store'a yayınlama
+
+Sadece kendi cihazınıza kurmak için Play Store'a yayınlamanıza gerek yok —
+Downloader/APK ile elle kurmak yeterli ve ücretsizdir. Yine de resmi olarak
+yayınlamak isterseniz gereken imzalama ayarı (`keystore.properties.example`),
+mağaza listesi metinleri ve Google'ın istediği hassas izin gerekçe formu
+taslakları [`play-store-listing.md`](play-store-listing.md) dosyasında hazır.
+Google Play Developer hesabı açma, `.aab` yükleme ve inceleme sürecini
+tamamlama adımları hesap/ödeme gerektirdiği için sizin tarafınızdan yapılmalı.
+
 ## DRM korumalı içerik (Netflix vb.) için alternatifler
 
 Widevine L1 DRM, oynatma sırasında Android'e "güvenli yüzey" bayrağı koyar ve

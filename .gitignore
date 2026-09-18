@@ -13,6 +13,11 @@ local.properties
 *.apk
 *.aab
 
+# Release imzalama sırları - ASLA commit edilmemeli
+/keystore.properties
+*.keystore
+*.jks
+
 # Python (hdmi-capture/)
 __pycache__/
 *.pyc
