@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AmbiScreen</string>
+    <string name="notification_channel_name">Ekran senkronizasyonu</string>
+    <string name="notification_title">AmbiScreen çalışıyor</string>
+    <string name="notification_text">Ekran renkleri WLED cihazına gönderiliyor</string>
+</resources>
