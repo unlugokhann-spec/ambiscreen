@@ -105,7 +105,8 @@ mümkün) bu mod da tepki vermez.
 ayrı bir capture cihazından görüntüyü okuyup aynı algoritmayı (letterbox
 tespiti + kenar örnekleme) ve aynı DDP protokolünü kullanarak WLED'e gönderir
 — gerçek ekran rengini birebir yansıtır ama ekstra donanım (HDMI splitter +
-capture kartı + Raspberry Pi) ister. Kurulum adımları için
+capture kartı, ve bunu çalıştıracak bir Raspberry Pi **veya** zaten sahip
+olduğunuz bir Windows/Mac/Linux bilgisayar) ister. Kurulum adımları için
 [`hdmi-capture/README.md`](hdmi-capture/README.md) dosyasına bakın.
 
 ## Bilinen sınırlamalar / yol haritası

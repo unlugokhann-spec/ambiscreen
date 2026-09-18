@@ -19,8 +19,8 @@ kullanılan standart bir yöntemdir.
 | Parça | Not |
 |---|---|
 | HDMI splitter (1'e 2) | Projektörün HDMI çıkışını hem asıl ekrana hem capture cihazına dağıtır |
-| USB HDMI capture kartı (UVC uyumlu) | ~15-25$ aralığındaki genel amaçlı "HDMI to USB" dongle'lar Linux'ta doğrudan `/dev/video*` olarak görünür |
-| Raspberry Pi 4 / Zero 2 W (veya eski bir mini PC) | Bu betiği 7/24 çalıştıracak düşük güçlü cihaz |
+| USB HDMI capture kartı (UVC uyumlu) | ~15-25$ aralığındaki genel amaçlı "HDMI to USB" dongle'lar Windows/Linux/Mac'te sürücüsüz tanınır |
+| Raspberry Pi 4 / Zero 2 W **veya** zaten sahip olduğunuz bir Windows/Mac/Linux bilgisayar | Betiği çalıştıracak cihaz. Ayrı bir Pi almak istemiyorsanız mevcut bilgisayarınızı kullanabilirsiniz — aşağıda Windows için ayrı bir kurulum bölümü var. |
 
 **Önemli uyumluluk notu**: Bazı capture kartları HDCP el sıkışmasını uygular
 ve korumalı bir kaynağa bağlandığında görüntü yerine siyah/gürültülü kare
@@ -30,7 +30,45 @@ olarak pikselleri verir; bu yüzden DIY ambiyans aydınlatma projelerinde
 yaygın olarak tercih edilirler. Cihazınızın uyumluluğunu, kendi sahip
 olduğunuz/izlemeye yetkili olduğunuz içerikle test ederek doğrulayın.
 
-## Kurulum
+## Kurulum — Windows (kendi bilgisayarınız, Raspberry Pi almadan)
+
+1. HDMI splitter'ı projektörün çıkışına takın; bir çıkışı asıl ekrana, diğerini
+   capture kartına bağlayın. Capture kartını bilgisayarınızın USB portuna takın
+   (bağlar bağlamaz Windows genelde sürücüsüz otomatik tanır; tanımazsa
+   kutusuyla gelen sürücü CD'sini/linkini kullanın).
+2. [python.org](https://www.python.org/downloads/) üzerinden Python 3.10+
+   kurun — kurulum ekranında **"Add python.exe to PATH"** kutusunu
+   işaretlemeyi unutmayın.
+3. Bu `hdmi-capture` klasörünü bilgisayarınıza indirin (repoyu `git clone`
+   ile veya ZIP olarak indirip açın), sonra PowerShell/CMD'de o klasöre girin:
+   ```powershell
+   cd hdmi-capture
+   python -m venv .venv
+   .venv\Scripts\pip install -r requirements.txt
+   ```
+4. Capture kartınızın hangi `capture_device` indeksinde göründüğünü bulun
+   (Windows'ta `/dev/video0` gibi bir yol yok, sayısal bir indeks kullanılır):
+   ```powershell
+   .venv\Scripts\python list_devices.py
+   ```
+   Projektörden görüntü gelen indeksi not edin (dizüstü/webcam'iniz varsa o
+   genelde `0`, harici capture kartı çoğunlukla `1` ya da üzeri çıkar).
+5. `config.example.json` dosyasını `config.json` olarak kopyalayıp WLED
+   IP'nizi, LED yerleşiminizi (Android uygulamasındaki ile aynı alanlar) ve
+   4. adımda bulduğunuz `capture_device` indeksini girin.
+6. Elle çalıştırıp doğrulayın:
+   ```powershell
+   .venv\Scripts\python ambient_sync.py --config config.json
+   ```
+   Projektörde görüntü değiştikçe WLED şeridinin renginin değiştiğini
+   görmelisiniz. Durdurmak için `Ctrl+C`.
+7. Her filme başlarken elle çalıştırmak istemiyorsanız bu klasördeki
+   `run_ambient_sync.bat` dosyasına çift tıklamanız yeterli. Bilgisayar her
+   açıldığında otomatik başlamasını isterseniz bu dosyanın bir kısayolunu
+   Windows'un **Başlangıç (Startup)** klasörüne
+   (`shell:startup` yazıp Gezgin'in adres çubuğuna yapıştırarak açılır) koyun.
+
+## Kurulum — Raspberry Pi / Linux (7/24 çalışan ayrı bir cihaz)
 
 1. HDMI splitter'ı projektörün çıkışına takın; bir çıkışı asıl ekrana, diğerini
    capture kartına bağlayın. Capture kartını Raspberry Pi'nin USB portuna takın.
