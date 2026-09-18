@@ -23,9 +23,9 @@ LED şeride yansıtan ambiyans aydınlatma uygulaması — kısaca kendi "Ambili
 - **Görüntü kaynağı**: `MediaProjection` API'si ile ekranın tamamı yakalanır,
   bu sayede Netflix, YouTube veya herhangi bir video oynatıcı fark etmeksizin
   çalışır (DRM korumalı bazı içerikler ekran yakalamayı engelleyebilir).
-- **Renk çıkarımı**: Ekran, LED sayısına göre çevresi (üst/sağ/alt/sol kenar)
-  boyunca dilimlere ayrılır, her dilimin ortalama rengi hesaplanır
-  (`ColorExtractor.kt`).
+- **Renk çıkarımı**: Ekranın çevresi, ayarlanan LED yerleşimine göre (kenar
+  başına açık/kapalı ve LED sayısı) dilimlere ayrılır, her dilimin ortalama
+  rengi hesaplanır (`ColorExtractor.kt`, `LedLayoutConfig`).
 - **İletim**: Hesaplanan renkler, WLED'in yerleşik desteklediği **DDP**
   (Distributed Display Protocol) ile UDP üzerinden gönderilir (`DdpSender.kt`).
   WLED tarafında ekstra bir eşleştirme/uygulama gerekmez; "Sync Interfaces"
@@ -52,14 +52,18 @@ Uygulama içinde ayarlanabilenler:
 - **WLED IP adresi / portu** — WLED cihazının yerel ağdaki IP'si (WLED
   arayüzünün ana sayfasında görünür), varsayılan port 4048. "Ağda WLED cihazı
   ara" butonuyla mDNS üzerinden otomatik de bulunabilir.
-- **LED sayısı** — Şeritteki toplam LED adedi, perimetre etrafına orantılı
-  dağıtılır.
+- **LED yerleşimi (kenar başına)** — Üst/sağ/alt/sol kenarların her biri ayrı
+  ayrı açılıp kapatılabilir ve kendi LED sayısı girilebilir. Böylece tam
+  perimetre, yalnızca üst-alt, L-şekilli (örn. üst+sol) veya tek kenar gibi
+  farklı fiziksel LED kurulumları desteklenir (`LedLayoutConfig`).
+- **Başlangıç kenarı** — Şeridin fiziksel olarak hangi kenardan başladığını
+  belirtir; açık kenarlar bu noktadan saat yönünde sırayla DDP'ye gönderilir.
 - **Kenar örnekleme payı (%)** — Renk ortalaması alınırken ekranın kenarından
   içeri doğru ne kadar alan kullanılacağı.
 - **Parlaklık, yumuşatma, güncelleme aralığı** — Görsel his ve pil/ağ yükü
   arasındaki dengeyi ayarlar.
-- **Yön ters çevirme** — Fiziksel LED kablolama yönü, hesaplanan sırayla
-  (saat yönü: üst→sağ→alt→sol) ters ise açılır.
+- **Yön ters çevirme** — Kablolama sırası, hesaplanan sıranın (başlangıç
+  kenarından saat yönünde) tam tersiyse açılır.
 
 ## Projeyi açma
 
@@ -80,8 +84,10 @@ Uygulama içinde ayarlanabilenler:
 - [x] Uygulama içi WLED cihaz keşfi (mDNS, `_http._tcp` üzerinden "WLED-XXXXXX"
       adlı cihazları bulur) — IP'yi elle girmeye gerek kalmadan listeden seçilebilir.
 - [x] Uygulama ikonu (adaptive icon).
-- [ ] Çoklu LED düzeni desteği (yalnızca tek perimetre şeridi; L-şekilli veya
-      matris düzenler için `ColorExtractor` genişletilmeli).
+- [x] Çoklu LED düzeni desteği — kenar başına açık/kapalı + kendi LED sayısı
+      ve başlangıç kenarı seçilebiliyor (tam perimetre, yalnızca üst-alt,
+      L-şekilli vb. desteklenir). Gerçek 2D matris (ekran arkasında satır
+      satır ızgara) düzeni hâlâ kapsam dışı.
 - [ ] Netflix gibi DRM korumalı akışlarda ekran yakalama engellenebilir —
       bu durumda alternatif olarak harici bir HDMI capture + PC/Raspberry Pi
       tabanlı Hyperion.NG çözümü değerlendirilebilir.

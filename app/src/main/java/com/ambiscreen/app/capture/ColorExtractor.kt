@@ -84,86 +84,94 @@ object ColorExtractor {
         return (sum / pixels.size).toInt()
     }
 
-    fun buildPerimeterZones(contentRect: Rect, ledCount: Int, marginPercent: Int): List<Rect> {
+    /**
+     * `layout`'ta tanımlı, açık kenarları `wiringOrder()` sırasıyla (fiziksel
+     * kablolama sırası) dolaşıp her kenarın kendi LED sayısına göre örnekleme
+     * bölgelerini üretir. Böylece tam perimetre, yalnızca üst-alt, L-şekilli
+     * veya tek kenar gibi farklı fiziksel LED kurulumları desteklenir.
+     */
+    fun buildZonesForLayout(contentRect: Rect, layout: LedLayoutConfig, marginPercent: Int): List<Rect> {
         val width = contentRect.width()
         val height = contentRect.height()
-        if (ledCount <= 0 || width <= 0 || height <= 0) return emptyList()
+        if (width <= 0 || height <= 0) return emptyList()
 
         val margin = max(1, (minOf(width, height) * marginPercent / 100f).roundToInt())
-
-        val topLen = width.toFloat()
-        val rightLen = height.toFloat()
-        val bottomLen = width.toFloat()
-        val leftLen = height.toFloat()
-        val total = topLen + rightLen + bottomLen + leftLen
-
-        // En büyük kalan yöntemiyle her kenara orantılı LED sayısı dağıt.
-        val rawCounts = listOf(topLen, rightLen, bottomLen, leftLen).map { it / total * ledCount }
-        val baseCounts = rawCounts.map { it.toInt() }.toMutableList()
-        var remaining = ledCount - baseCounts.sum()
-        val remainders = rawCounts.mapIndexed { i, v -> i to (v - v.toInt()) }
-            .sortedByDescending { it.second }
-        var idx = 0
-        while (remaining > 0 && idx < remainders.size) {
-            baseCounts[remainders[idx].first] += 1
-            remaining--
-            idx++
-        }
-        val (topCount, rightCount, bottomCount, leftCount) = baseCounts
-
-        val offsetX = contentRect.left
-        val offsetY = contentRect.top
         val zones = mutableListOf<Rect>()
 
-        // Üst kenar: soldan sağa
-        for (i in 0 until topCount) {
-            val x0 = (width.toFloat() * i / topCount).roundToInt()
-            val x1 = (width.toFloat() * (i + 1) / topCount).roundToInt()
-            zones += Rect(
-                offsetX + x0,
-                offsetY,
-                offsetX + x1.coerceAtMost(width),
-                offsetY + margin.coerceAtMost(height),
-            )
+        for (edge in layout.wiringOrder()) {
+            val count = layout.configFor(edge).ledCount
+            zones += when (edge) {
+                Edge.TOP -> topZones(contentRect, count, margin)
+                Edge.RIGHT -> rightZones(contentRect, count, margin)
+                Edge.BOTTOM -> bottomZones(contentRect, count, margin)
+                Edge.LEFT -> leftZones(contentRect, count, margin)
+            }
         }
-
-        // Sağ kenar: yukarıdan aşağı
-        for (i in 0 until rightCount) {
-            val y0 = (height.toFloat() * i / rightCount).roundToInt()
-            val y1 = (height.toFloat() * (i + 1) / rightCount).roundToInt()
-            zones += Rect(
-                offsetX + (width - margin).coerceAtLeast(0),
-                offsetY + y0,
-                offsetX + width,
-                offsetY + y1.coerceAtMost(height),
-            )
-        }
-
-        // Alt kenar: sağdan sola
-        for (i in 0 until bottomCount) {
-            val x1 = (width.toFloat() * (bottomCount - i) / bottomCount).roundToInt()
-            val x0 = (width.toFloat() * (bottomCount - i - 1) / bottomCount).roundToInt()
-            zones += Rect(
-                offsetX + x0,
-                offsetY + (height - margin).coerceAtLeast(0),
-                offsetX + x1.coerceAtMost(width),
-                offsetY + height,
-            )
-        }
-
-        // Sol kenar: aşağıdan yukarı
-        for (i in 0 until leftCount) {
-            val y1 = (height.toFloat() * (leftCount - i) / leftCount).roundToInt()
-            val y0 = (height.toFloat() * (leftCount - i - 1) / leftCount).roundToInt()
-            zones += Rect(
-                offsetX,
-                offsetY + y0,
-                offsetX + margin.coerceAtMost(width),
-                offsetY + y1.coerceAtMost(height),
-            )
-        }
-
         return zones
+    }
+
+    // Üst kenar: soldan sağa
+    private fun topZones(rect: Rect, count: Int, margin: Int): List<Rect> {
+        val width = rect.width()
+        val height = rect.height()
+        return (0 until count).map { i ->
+            val x0 = (width.toFloat() * i / count).roundToInt()
+            val x1 = (width.toFloat() * (i + 1) / count).roundToInt()
+            Rect(
+                rect.left + x0,
+                rect.top,
+                rect.left + x1.coerceAtMost(width),
+                rect.top + margin.coerceAtMost(height),
+            )
+        }
+    }
+
+    // Sağ kenar: yukarıdan aşağı
+    private fun rightZones(rect: Rect, count: Int, margin: Int): List<Rect> {
+        val width = rect.width()
+        val height = rect.height()
+        return (0 until count).map { i ->
+            val y0 = (height.toFloat() * i / count).roundToInt()
+            val y1 = (height.toFloat() * (i + 1) / count).roundToInt()
+            Rect(
+                rect.left + (width - margin).coerceAtLeast(0),
+                rect.top + y0,
+                rect.left + width,
+                rect.top + y1.coerceAtMost(height),
+            )
+        }
+    }
+
+    // Alt kenar: sağdan sola
+    private fun bottomZones(rect: Rect, count: Int, margin: Int): List<Rect> {
+        val width = rect.width()
+        val height = rect.height()
+        return (0 until count).map { i ->
+            val x1 = (width.toFloat() * (count - i) / count).roundToInt()
+            val x0 = (width.toFloat() * (count - i - 1) / count).roundToInt()
+            Rect(
+                rect.left + x0,
+                rect.top + (height - margin).coerceAtLeast(0),
+                rect.left + x1.coerceAtMost(width),
+                rect.top + height,
+            )
+        }
+    }
+
+    // Sol kenar: aşağıdan yukarı
+    private fun leftZones(rect: Rect, count: Int, margin: Int): List<Rect> {
+        val width = rect.width()
+        val height = rect.height()
+        return (0 until count).map { i ->
+            val y1 = (height.toFloat() * (count - i) / count).roundToInt()
+            val y0 = (height.toFloat() * (count - i - 1) / count).roundToInt()
+            Rect(
+                rect.left,
+                rect.top + y0,
+                rect.left + margin.coerceAtMost(width),
+                rect.top + y1.coerceAtMost(height),
+            )
+        }
     }
 
     /** Her zonun ortalama rengini 0xRRGGBB (alfasız) Int olarak döner. */

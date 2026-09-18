@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.ambiscreen.app.capture.LedLayoutConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -20,18 +21,20 @@ private val Context.dataStore by preferencesDataStore(name = "ambiscreen_setting
 data class AmbiSettings(
     val wledIp: String = "",
     val wledPort: Int = 4048,
-    val ledCount: Int = 60,
+    val ledLayoutRaw: String = LedLayoutConfig.DEFAULT.serialize(),
     val marginPercent: Int = 12,
     val intervalMs: Long = 120,
     val reverseDirection: Boolean = false,
     val brightnessPercent: Int = 100,
     val smoothingPercent: Int = 35,
-)
+) {
+    val ledLayout: LedLayoutConfig get() = LedLayoutConfig.deserialize(ledLayoutRaw)
+}
 
 object SettingsKeys {
     val WLED_IP = stringPreferencesKey("wled_ip")
     val WLED_PORT = intPreferencesKey("wled_port")
-    val LED_COUNT = intPreferencesKey("led_count")
+    val LED_LAYOUT = stringPreferencesKey("led_layout")
     val MARGIN_PERCENT = intPreferencesKey("margin_percent")
     val INTERVAL_MS = longPreferencesKey("interval_ms")
     val REVERSE_DIRECTION = booleanPreferencesKey("reverse_direction")
@@ -46,7 +49,7 @@ class SettingsRepository(private val context: Context) {
         AmbiSettings(
             wledIp = prefs[SettingsKeys.WLED_IP] ?: defaults.wledIp,
             wledPort = prefs[SettingsKeys.WLED_PORT] ?: defaults.wledPort,
-            ledCount = prefs[SettingsKeys.LED_COUNT] ?: defaults.ledCount,
+            ledLayoutRaw = prefs[SettingsKeys.LED_LAYOUT] ?: defaults.ledLayoutRaw,
             marginPercent = prefs[SettingsKeys.MARGIN_PERCENT] ?: defaults.marginPercent,
             intervalMs = prefs[SettingsKeys.INTERVAL_MS] ?: defaults.intervalMs,
             reverseDirection = prefs[SettingsKeys.REVERSE_DIRECTION] ?: defaults.reverseDirection,
@@ -59,7 +62,7 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { prefs ->
             prefs[SettingsKeys.WLED_IP] = settings.wledIp
             prefs[SettingsKeys.WLED_PORT] = settings.wledPort
-            prefs[SettingsKeys.LED_COUNT] = settings.ledCount
+            prefs[SettingsKeys.LED_LAYOUT] = settings.ledLayoutRaw
             prefs[SettingsKeys.MARGIN_PERCENT] = settings.marginPercent
             prefs[SettingsKeys.INTERVAL_MS] = settings.intervalMs
             prefs[SettingsKeys.REVERSE_DIRECTION] = settings.reverseDirection

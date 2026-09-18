@@ -144,7 +144,8 @@ class ScreenCaptureService : Service() {
 
     private fun processFrame(image: android.media.Image) {
         val settings = currentSettings
-        if (settings.wledIp.isBlank() || settings.ledCount <= 0) return
+        val layout = settings.ledLayout
+        if (settings.wledIp.isBlank() || layout.totalLedCount() <= 0) return
 
         val plane = image.planes[0]
         val buffer = plane.buffer
@@ -160,9 +161,9 @@ class ScreenCaptureService : Service() {
         bitmap.copyPixelsFromBuffer(buffer)
 
         val contentRect = ColorExtractor.detectContentRect(bitmap)
-        val zones = ColorExtractor.buildPerimeterZones(
+        val zones = ColorExtractor.buildZonesForLayout(
             contentRect = contentRect,
-            ledCount = settings.ledCount,
+            layout = layout,
             marginPercent = settings.marginPercent,
         )
         val rawColors = ColorExtractor.averageColors(bitmap, zones)
