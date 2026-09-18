@@ -21,8 +21,10 @@ LED şeride yansıtan ambiyans aydınlatma uygulaması — kısaca kendi "Ambili
 ```
 
 - **Görüntü kaynağı**: `MediaProjection` API'si ile ekranın tamamı yakalanır,
-  bu sayede Netflix, YouTube veya herhangi bir video oynatıcı fark etmeksizin
-  çalışır (DRM korumalı bazı içerikler ekran yakalamayı engelleyebilir).
+  bu sayede YouTube veya DRM'siz herhangi bir video oynatıcı fark etmeksizin
+  çalışır. Netflix gibi Widevine L1 DRM kullanan servislerde bu API donanım
+  seviyesinde engellenir — bu durum için `hdmi-capture/` altındaki alternatif
+  çözüme bakın.
 - **Renk çıkarımı**: Ekranın çevresi, ayarlanan LED yerleşimine göre (kenar
   başına açık/kapalı ve LED sayısı) dilimlere ayrılır, her dilimin ortalama
   rengi hesaplanır (`ColorExtractor.kt`, `LedLayoutConfig`).
@@ -77,6 +79,17 @@ Uygulama içinde ayarlanabilenler:
 4. Uygulamayı projeksiyon cihazına yükleyip çalıştırın, WLED IP'sini girin,
    "Ekran senkronizasyonunu başlat" ile ekran paylaşım iznini onaylayın.
 
+## DRM korumalı içerik (Netflix vb.) için alternatif: HDMI capture modu
+
+Widevine L1 DRM, oynatma sırasında Android'e "güvenli yüzey" bayrağı koyar ve
+bu açıkken `MediaProjection` sadece siyah kare döner — bu, işletim sisteminin
+donanım seviyesinde uyguladığı bir kısıtlamadır ve uygulama içinden yazılımla
+aşılamaz. Bunun yerine `hdmi-capture/` klasöründeki Python betiği, projektörün
+HDMI çıkışına takılan ayrı bir capture cihazından görüntüyü okuyup aynı
+algoritmayı (letterbox tespiti + kenar örnekleme) ve aynı DDP protokolünü
+kullanarak WLED'e gönderir. Kurulum adımları ve donanım listesi için
+[`hdmi-capture/README.md`](hdmi-capture/README.md) dosyasına bakın.
+
 ## Bilinen sınırlamalar / yol haritası
 
 - [x] Sinemaskop/letterbox içerikte üst-alt (veya pillarbox'ta yan) siyah
@@ -88,6 +101,7 @@ Uygulama içinde ayarlanabilenler:
       ve başlangıç kenarı seçilebiliyor (tam perimetre, yalnızca üst-alt,
       L-şekilli vb. desteklenir). Gerçek 2D matris (ekran arkasında satır
       satır ızgara) düzeni hâlâ kapsam dışı.
-- [ ] Netflix gibi DRM korumalı akışlarda ekran yakalama engellenebilir —
-      bu durumda alternatif olarak harici bir HDMI capture + PC/Raspberry Pi
-      tabanlı Hyperion.NG çözümü değerlendirilebilir.
+- [x] Netflix gibi DRM korumalı akışlar için alternatif çözüm: `hdmi-capture/`
+      altında, projektörün HDMI çıkışını okuyup aynı algoritma ve DDP
+      protokolüyle WLED'e gönderen bağımsız bir Python betiği (Raspberry Pi
+      üzerinde 7/24 çalışacak şekilde, systemd servis dosyasıyla).

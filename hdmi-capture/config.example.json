@@ -1,0 +1,17 @@
+{
+  "capture_device": 0,
+  "wled_ip": "192.168.1.50",
+  "wled_port": 4048,
+  "margin_percent": 12,
+  "interval_ms": 120,
+  "brightness_percent": 100,
+  "smoothing_percent": 35,
+  "reverse_direction": false,
+  "led_layout": {
+    "start_edge": "TOP",
+    "top": { "enabled": true, "led_count": 20 },
+    "right": { "enabled": true, "led_count": 10 },
+    "bottom": { "enabled": true, "led_count": 20 },
+    "left": { "enabled": true, "led_count": 10 }
+  }
+}

@@ -12,3 +12,9 @@ local.properties
 /app/release
 *.apk
 *.aab
+
+# Python (hdmi-capture/)
+__pycache__/
+*.pyc
+.venv/
+hdmi-capture/config.json

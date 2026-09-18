@@ -1,0 +1,15 @@
+[Unit]
+Description=AmbiScreen HDMI capture -> WLED ambiyans senkronizasyonu
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ambiscreen-hdmi
+ExecStart=/opt/ambiscreen-hdmi/.venv/bin/python3 /opt/ambiscreen-hdmi/ambient_sync.py --config /opt/ambiscreen-hdmi/config.json
+Restart=on-failure
+RestartSec=3
+User=pi
+
+[Install]
+WantedBy=multi-user.target
